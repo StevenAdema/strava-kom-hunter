@@ -130,4 +130,4 @@ dmypy.json
 
 # Config file 
 conf/conf.yaml
-conf/auth.json
+conf/oauth.json
