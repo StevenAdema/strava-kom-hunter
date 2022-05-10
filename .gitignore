@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Config file 
+conf/conf.yaml
+conf/auth.json
