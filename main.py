@@ -3,6 +3,7 @@ import re
 import yaml
 import pandas as pd
 import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 with open('./conf/conf.yaml') as f:
     conf = yaml.safe_load(f)
@@ -10,61 +11,37 @@ print(conf)
 
 CLIENT_ID=conf['client_id']
 CLIENT_SECRET=conf['client_secret']
-REFRESH_TOKEN=conf['client_token']
+REFRESH_TOKEN=conf['refresh_token']
 
-access_token = "access_token=" + REFRESH_TOKEN # enter your access code here
-url = "https://www.strava.com/api/v3/activities"
+auth_url = "https://www.strava.com/oauth/token"
+# activites_url = "https://www.strava.com/api/v3/athlete/activities"
+activites_url = "https://www.strava.com/api/v3//segments/explore"
+activites_url = "https://www.strava.com/api/v3//segments/655808"
 
-page = 1
+payload = {
+    'client_id': CLIENT_ID,
+    'client_secret': CLIENT_SECRET,
+    'refresh_token': REFRESH_TOKEN,
+    'grant_type': "refresh_token",
+    'f': 'json'
+}
 
-while True:
-    
-    # get page of activities from Strava
-    r = requests.get(url + '?' + access_token + '&per_page=50' + '&page=' + str(page))
-    r = r.json()
-    print(r)
+print("Requesting Token...\n")
+res = requests.post(auth_url, data=payload, verify=False)
+access_token = res.json()['access_token']
+print("Access Token = {}\n".format(access_token))
 
-    # if no results then exit loop
-    if (not r):
-        break
-    
-    # otherwise add new data to dataframe
-    for x in range(len(r)):
-        activities.loc[x + (page-1)*50,'id'] = r[x]['id']
-        activities.loc[x + (page-1)*50,'type'] = r[x]['type']
+header = {'Authorization': 'Bearer ' + access_token}
+# param = {'per_page': 200, 'page': 1}
+param = {
+    'bounds': '45.40576,-75.71238,45.42703,-75.67685',
+    'activity_type': 'riding'
+    }
 
-    # increment page
-    page += 1
+# my_dataset = requests.get(activites_url, headers=header, params=param).json()
+my_dataset = requests.get(activites_url, headers=header).json()
 
-# barchart of activity types
-activities.head()
-activities['type'].value_counts().plot('bar')
-plt.title('Activity Breakdown', fontsize=18, fontweight="bold")
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=16)
-plt.ylabel('Frequency', fontsize=18)
- 
-# filter to only runs
-runs = activities[activities.type == 'Run']
-
-# initialize dataframe for split data
-col_names = ['average_speed','distance','elapsed_time','elevation_difference','moving_time','pace_zone',
-             'split','id','date','description']
-splits = pd.DataFrame(columns=col_names)
-
-# loop through each activity id and retrieve data
-for run_id in runs['id']:
-    
-    # Load activity data
-    print(run_id)
-    r = requests.get(url + '/' + str(run_id) + '?' + access_token)
-    r = r.json()
-
-    # Extract Activity Splits
-    activity_splits = pd.DataFrame(r['splits_metric']) 
-    activity_splits['id'] = run_id
-    activity_splits['date'] = r['start_date']
-    activity_splits['description'] = r['description']
-    
-    # Add to total list of splits
-    splits = pd.concat([splits, activity_splits])
+print(my_dataset)
+exit()
+print(my_dataset[0]["name"])
+print(my_dataset[0]["map"]["summary_polyline"])
