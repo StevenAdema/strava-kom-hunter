@@ -16,7 +16,6 @@ REFRESH_TOKEN=conf['refresh_token']
 auth_url = "https://www.strava.com/oauth/token"
 # activites_url = "https://www.strava.com/api/v3/athlete/activities"
 activites_url = "https://www.strava.com/api/v3//segments/explore"
-activites_url = "https://www.strava.com/api/v3//segments/655808"
 
 payload = {
     'client_id': CLIENT_ID,
@@ -38,8 +37,7 @@ param = {
     'activity_type': 'riding'
     }
 
-# my_dataset = requests.get(activites_url, headers=header, params=param).json()
-my_dataset = requests.get(activites_url, headers=header).json()
+my_dataset = requests.get(activites_url, headers=header, params=param).json()
 
 print(my_dataset)
 exit()
